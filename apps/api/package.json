@@ -23,10 +23,12 @@
     "better-sqlite3": "^11.8.0",
     "compression": "^1.7.5",
     "cors": "^2.8.5",
+    "crossws": "^0.4.1",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.36.4",
     "express": "^4.21.1",
     "helmet": "^8.0.0",
+    "ws": "^8.18.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -38,6 +40,7 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
     "@types/supertest": "^6.0.2",
+    "@types/ws": "^8.18.1",
     "@vitest/coverage-v8": "^2.1.8",
     "drizzle-kit": "^0.30.1",
     "supertest": "^7.0.0",

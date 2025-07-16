@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { api } from "@/utils/api";
 import type { User } from "@repo/api-contract";
+import StreamingTime from "@/components/StreamingTime";
 
 export function ORPCDemo(): React.JSX.Element {
   const [users, setUsers] = useState<User[]>([]);
@@ -116,18 +117,22 @@ export function ORPCDemo(): React.JSX.Element {
           </CardContent>
         </Card>
 
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>🔍 How oRPC Works (Simplified)</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm">📝 <strong>Contract:</strong> `listUsers = os.handler(() =&gt; User[])`</p>
-            <p className="text-sm">🖥️ <strong>Server:</strong> Implements the handler with database logic</p>
-            <p className="text-sm">🌐 <strong>Client:</strong> `api.users.list()` calls the endpoint</p>
-            <p className="text-sm">⚡ <strong>Network:</strong> HTTP request to `/api/orpc`</p>
-            <p className="text-sm">🔒 <strong>Type Safety:</strong> TypeScript ensures contract compliance</p>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>🔍 How oRPC Works (Simplified)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm">📝 <strong>Contract:</strong> `listUsers = os.handler(() =&gt; User[])`</p>
+              <p className="text-sm">🖥️ <strong>Server:</strong> Implements the handler with database logic</p>
+              <p className="text-sm">🌐 <strong>Client:</strong> `api.users.list()` calls the endpoint</p>
+              <p className="text-sm">⚡ <strong>Network:</strong> HTTP request to `/api/orpc`</p>
+              <p className="text-sm">🔒 <strong>Type Safety:</strong> TypeScript ensures contract compliance</p>
+            </CardContent>
+          </Card>
+
+          <StreamingTime />
+        </div>
       </div>
     </div>
   );

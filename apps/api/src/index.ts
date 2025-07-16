@@ -3,11 +3,15 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import dotenv from "dotenv";
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
 import usersRouter from "./routes/users.js";
 import { errorHandler } from "./middleware/errorHandler.js";
-import { RPCHandler } from '@orpc/server/node'
+import { RPCHandler as HttpHandler } from '@orpc/server/node'  // HTTP → Express
+import { RPCHandler as WsHandler } from '@orpc/server/ws'
 import { CORSPlugin } from '@orpc/server/plugins'
-import { router } from './routes/orpc.js';
+import { router } from './routes/orpc.js'
+import { streamingRouter } from './routes/streaming.js';
 
 dotenv.config();
 
@@ -26,9 +30,12 @@ app.get("/health", (req, res) => {
 });
 
 // oRPC API setup
-const orpcHandler = new RPCHandler(router, {
+const orpcHandler = new HttpHandler(router, {
   plugins: [new CORSPlugin()]
 });
+
+// oRPC Streaming setup with WebSocket
+const streamingHandler = new WsHandler(streamingRouter);
 
 // oRPC API routes - mounted at /api prefix
 app.use('/api/*', async (req, res, next) => {
@@ -64,8 +71,33 @@ app.use("*", (req, res) => {
 app.use(errorHandler);
 
 if (process.env.NODE_ENV !== "test") {
-  app.listen(port, () => {
+  // Create HTTP server for both Express and WebSocket
+  const server = createServer(app);
+  
+  // Create WebSocket server
+  const wss = new WebSocketServer({ server });
+  
+  // Handle WebSocket connections
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    
+    // Integrate WebSocket with oRPC
+    streamingHandler.upgrade(ws, {
+      context: { headers: {} },
+    });
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+  });
+
+  server.listen(port, () => {
     console.log(`Server running on port ${port}`);
+    console.log(`WebSocket server ready for streaming`);
   });
 }
 

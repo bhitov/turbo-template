@@ -1,4 +1,4 @@
-import { oc } from '@orpc/contract'
+import { oc, eventIterator } from '@orpc/contract'
 import { z } from 'zod'
 
 // ==========================================
@@ -73,5 +73,27 @@ export type User = z.infer<typeof UserSchema>
 export type CreateUser = z.infer<typeof CreateUserSchema>
 export type UpdateUser = z.infer<typeof UpdateUserSchema>
 
+// ==========================================
+// Streaming Contracts 
+// ==========================================
+
+
+const streamTimeSchema = z.object({
+  timestamp: z.string(),
+  formatted: z.string()
+})
+
+// Stream current datetime - for streaming, we don't specify output since it yields multiple values
+export const streamTime = oc
+  .output(eventIterator(streamTimeSchema))
+
+// Streaming contract
+export const streamingContract = {
+  time: {
+    get: streamTime,
+  },
+}
+
 // Contract types (automatically generated from routes)
 export type Contract = typeof contract
+export type StreamingContract = typeof streamingContract
