@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { streamingApi } from '../utils/streaming'
+import { socket, connectSocket, disconnectSocket } from '../utils/socket'
 
 export default function StreamingTime() {
   const [currentTime, setCurrentTime] = useState<string>('')
@@ -7,45 +7,50 @@ export default function StreamingTime() {
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
-    let isActive = true
+    // Connect to Socket.IO server
+    connectSocket()
 
-    const startStream = async () => {
-      try {
-        setIsConnected(true)
-        setError('')
-        
-        // Get the stream from the server - treat as any for now
-        const result = await (streamingApi.time.get as any)()
-        
-        // Try to iterate if possible
-        try {
-          for await (const timeData of result) {
-            if (!isActive) break // Stop if component unmounted
-            
-            if (timeData && timeData.formatted) {
-              setCurrentTime(timeData.formatted)
-            }
-          }
-        } catch (iterError) {
-          // If not iterable, just display the result
-          if (result && result.formatted) {
-            setCurrentTime(result.formatted)
-          } else {
-            setCurrentTime('Connected but no stream data')
-          }
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to connect to stream')
-        setIsConnected(false)
-      }
+    // Socket event handlers
+    const handleConnect = () => {
+      setIsConnected(true)
+      setError('')
+      // Start the time stream
+      socket.emit('start-time-stream')
     }
 
-    startStream()
+    const handleDisconnect = () => {
+      setIsConnected(false)
+      setCurrentTime('')
+    }
+
+    const handleTimeUpdate = (data: { timestamp: string; formatted: string }) => {
+      setCurrentTime(data.formatted)
+    }
+
+    const handleConnectError = (error: Error) => {
+      setError(error.message || 'Failed to connect to server')
+      setIsConnected(false)
+    }
+
+    // Register event listeners
+    socket.on('connect', handleConnect)
+    socket.on('disconnect', handleDisconnect)
+    socket.on('time-update', handleTimeUpdate)
+    socket.on('connect_error', handleConnectError)
 
     // Cleanup function
     return () => {
-      isActive = false
-      setIsConnected(false)
+      // Stop the time stream
+      socket.emit('stop-time-stream')
+      
+      // Remove event listeners
+      socket.off('connect', handleConnect)
+      socket.off('disconnect', handleDisconnect)
+      socket.off('time-update', handleTimeUpdate)
+      socket.off('connect_error', handleConnectError)
+      
+      // Disconnect socket
+      disconnectSocket()
     }
   }, [])
 

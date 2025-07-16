@@ -1,83 +1,122 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import request from "supertest";
-import app from "../src/index.js";
+import { describe, it, expect, beforeEach } from "vitest";
+import { appRouter } from "../src/routes/trpc.js";
 
-describe("Users API", () => {
+describe("tRPC API", () => {
+  // Create a caller instance for testing
+  const caller = appRouter.createCaller({});
+
   beforeEach(async () => {
-    // Setup test database state if needed
+    // Clean up test data if needed
+    // You might want to use transactions or test-specific database here
   });
 
-  afterEach(async () => {
-    // Cleanup test database state if needed
-  });
-
-  describe("GET /api/users", () => {
-    it("should return empty array initially", async () => {
-      const response = await request(app).get("/api/users");
-      
-      expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
+  describe("users.list", () => {
+    it("should return array of users", async () => {
+      const users = await caller.users.list();
+      expect(Array.isArray(users)).toBe(true);
     });
   });
 
-  describe("POST /api/users", () => {
+  describe("users.create", () => {
     it("should create a new user", async () => {
       const newUser = {
-        email: "test@example.com",
+        email: `test${String(Date.now())}@example.com`,
         name: "Test User",
       };
 
-      const response = await request(app)
-        .post("/api/users")
-        .send(newUser);
-
-      expect(response.status).toBe(201);
-      expect(response.body).toMatchObject({
+      const user = await caller.users.create(newUser);
+      
+      expect(user).toBeDefined();
+      expect(user).toMatchObject({
         email: newUser.email,
         name: newUser.name,
       });
-      expect(response.body.id).toBeDefined();
-      expect(response.body.createdAt).toBeDefined();
+      expect(user?.id).toBeDefined();
+      expect(user?.createdAt).toBeDefined();
     });
 
-    it("should return 400 for invalid user data", async () => {
+    it("should return error for invalid user data", async () => {
       const invalidUser = {
         email: "invalid-email",
-        // missing name
+        name: "Test",
       };
 
-      const response = await request(app)
-        .post("/api/users")
-        .send(invalidUser);
-
-      expect(response.status).toBe(400);
-      expect(response.body.error).toBe("Validation Error");
+      await expect(caller.users.create(invalidUser)).rejects.toThrow();
     });
   });
 
-  describe("GET /api/users/:id", () => {
-    it("should return 404 for non-existent user", async () => {
-      const response = await request(app).get("/api/users/999999");
-      
-      expect(response.status).toBe(404);
-      expect(response.body.error).toBe("User not found");
+  describe("users.get", () => {
+    it("should return error for non-existent user", async () => {
+      await expect(caller.users.get({ id: 999999 })).rejects.toThrow("User not found");
     });
 
-    it("should return 400 for invalid user ID", async () => {
-      const response = await request(app).get("/api/users/invalid");
-      
-      expect(response.status).toBe(400);
-      expect(response.body.error).toBe("Invalid user ID");
+    it("should get an existing user", async () => {
+      // First create a user
+      const newUser = await caller.users.create({
+        email: `gettest${String(Date.now())}@example.com`,
+        name: "Get Test",
+      });
+
+      // Then get it
+      if (!newUser) throw new Error('User creation failed');
+      const user = await caller.users.get({ id: newUser.id });
+      expect(user.id).toBe(newUser.id);
+      expect(user.email).toBe(newUser.email);
     });
   });
 
-  describe("Health check", () => {
-    it("should return health status", async () => {
-      const response = await request(app).get("/health");
-      
-      expect(response.status).toBe(200);
-      expect(response.body.status).toBe("ok");
-      expect(response.body.timestamp).toBeDefined();
+  describe("users.update", () => {
+    it("should update an existing user", async () => {
+      // First create a user
+      const newUser = await caller.users.create({
+        email: `update${String(Date.now())}@example.com`,
+        name: "Original Name",
+      });
+
+      // Then update it
+      if (!newUser) throw new Error('User creation failed');
+      const updatedUser = await caller.users.update({
+        id: newUser.id,
+        data: {
+          name: "Updated Name",
+        },
+      });
+
+      expect(updatedUser.name).toBe("Updated Name");
+      expect(updatedUser.email).toBe(newUser.email);
+    });
+
+    it("should return error for non-existent user", async () => {
+      await expect(
+        caller.users.update({
+          id: 999999,
+          data: { name: "New Name" },
+        })
+      ).rejects.toThrow("User not found");
+    });
+  });
+
+  describe("users.delete", () => {
+    it("should delete an existing user", async () => {
+      // First create a user
+      const newUser = await caller.users.create({
+        email: `delete${String(Date.now())}@example.com`,
+        name: "To Delete",
+      });
+
+      // Then delete it
+      if (!newUser) throw new Error('User creation failed');
+      const result = await caller.users.delete({ id: newUser.id });
+      expect(result.success).toBe(true);
+
+      // Verify it's gone
+      await expect(caller.users.get({ id: newUser.id })).rejects.toThrow("User not found");
+    });
+
+    it("should return error for non-existent user", async () => {
+      await expect(
+        caller.users.delete({ id: 999999 })
+      ).rejects.toThrow("User not found");
     });
   });
 });

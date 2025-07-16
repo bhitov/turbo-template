@@ -16,10 +16,12 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
-    "@orpc/client": "^1.7.1",
     "@orpc/contract": "^1.7.1",
     "@radix-ui/react-slot": "^1.1.1",
-    "@repo/api-contract": "workspace:*",
+    "@repo/config": "workspace:*",
+    "@tanstack/react-query": "^5.83.0",
+    "@trpc/client": "^11.4.3",
+    "@trpc/react-query": "^11.4.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",

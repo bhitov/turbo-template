@@ -1,15 +1,15 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response } from "express";
 import { ZodError } from "zod";
+import { serverConfig } from "@repo/config";
 
 export interface ApiError extends Error {
   statusCode?: number;
 }
 
 export const errorHandler = (
-  err: ApiError,
-  req: Request,
+  err: ApiError | ZodError,
+  _req: Request,
   res: Response,
-  next: NextFunction,
 ): void => {
   console.error("Error:", err);
 
@@ -21,12 +21,12 @@ export const errorHandler = (
     return;
   }
 
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.statusCode ?? 500;
   const message = err.message || "Internal Server Error";
 
   res.status(statusCode).json({
     error: message,
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    ...(serverConfig.isDevelopment && { stack: err.stack }),
   });
 };
 

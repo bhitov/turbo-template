@@ -1,36 +1,88 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { httpBatchLink } from '@trpc/client';
+import { trpc } from '../src/utils/trpc';
+import { clientConfig } from '@repo/config/client';
 import App from "../src/App";
 
-describe("App", () => {
-  beforeEach(() => {
-    // Mock fetch globally
-    global.fetch = vi.fn();
+// Create a wrapper component with all providers
+function AllTheProviders({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+  
+  const trpcClient = trpc.createClient({
+    links: [
+      httpBatchLink({
+        url: `${clientConfig.apiUrl}/api/trpc`,
+      }),
+    ],
   });
 
-  it("renders the main heading", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [],
-    } as Response);
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+}
 
-    render(<App />);
+// Mock the tRPC calls
+vi.mock('../src/utils/trpc', () => {
+  const createTRPCReact = vi.fn(() => {
+    const mockQuery = vi.fn(() => ({
+      data: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    }));
+
+    const mockMutation = vi.fn(() => ({
+      mutate: vi.fn(),
+      isPending: false,
+    }));
+
+    return {
+      useQuery: mockQuery,
+      useMutation: mockMutation,
+      users: {
+        list: {
+          useQuery: mockQuery,
+        },
+        create: {
+          useMutation: mockMutation,
+        },
+      },
+      createClient: vi.fn(() => ({})),
+      Provider: ({ children }: { children: React.ReactNode }) => children,
+    };
+  });
+
+  return {
+    trpc: createTRPCReact(),
+  };
+});
+
+describe("App", () => {
+  it("renders the main heading", async () => {
+    render(<App />, { wrapper: AllTheProviders });
     
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { name: /welcome to your template/i }),
+        screen.getByRole("heading", { name: /welcome to your turborepo template/i }),
       ).toBeInTheDocument();
     });
   });
 
   it("renders the create user button", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [],
-    } as Response);
-
-    render(<App />);
+    render(<App />, { wrapper: AllTheProviders });
     
     await waitFor(() => {
       expect(
@@ -39,11 +91,11 @@ describe("App", () => {
     });
   });
 
-  it("shows loading state initially", () => {
-    vi.mocked(fetch).mockImplementationOnce(() => new Promise(() => {})); // Never resolves
+  it("shows users section", async () => {
+    render(<App />, { wrapper: AllTheProviders });
     
-    render(<App />);
-    
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /users/i })).toBeInTheDocument();
+    });
   });
 });

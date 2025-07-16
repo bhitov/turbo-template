@@ -30,20 +30,24 @@
       "outputs": ["coverage/**"]
     },
     "db:generate": {
-      "inputs": ["src/db/schema.ts", "drizzle.config.ts"],
-      "outputs": ["drizzle/**"]
+      "inputs": ["src/schema.ts", "drizzle.config.ts"],
+      "outputs": ["drizzle/**"],
+      "env": ["DATABASE_URL"]
     },
     "db:migrate": {
       "dependsOn": ["db:generate"],
-      "cache": false
+      "cache": false,
+      "env": ["DATABASE_URL"]
     },
     "db:studio": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["DATABASE_URL"]
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["DATABASE_URL", "PORT", "NODE_ENV", "CLIENT_URL", "SERVER_URL", "API_URL"]
     },
     "clean": {
       "cache": false

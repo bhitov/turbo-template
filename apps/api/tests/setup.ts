@@ -1,22 +1,13 @@
 import { beforeAll, afterAll } from "vitest";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { db } from "../src/db/index.js";
-import fs from "fs";
-import path from "path";
 
-beforeAll(async () => {
-  // Create data directory
-  if (!fs.existsSync("data")) {
-    fs.mkdirSync("data");
-  }
-  
-  // Run migrations
-  await migrate(db, { migrationsFolder: "drizzle" });
+beforeAll(() => {
+  // For PostgreSQL, migrations are typically handled outside of tests
+  // You might want to use a separate test database
+  console.log("Test setup: Using PostgreSQL database");
 });
 
-afterAll(async () => {
-  // Clean up test database
-  if (fs.existsSync("data/database.db")) {
-    fs.unlinkSync("data/database.db");
-  }
+afterAll(() => {
+  // Clean up test data if needed
+  // Note: Be careful not to drop production data
+  console.log("Test cleanup: Completed");
 });

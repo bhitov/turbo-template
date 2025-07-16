@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,65 +6,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-interface User {
-  id: number;
-  email: string;
-  name: string;
-  createdAt: string;
-}
+import { trpc } from "@/utils/trpc";
+import StreamingTime from "@/components/StreamingTime";
 
 export function HomePage(): React.JSX.Element {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: users = [], isLoading, error, refetch } = trpc.users.list.useQuery();
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
-  const fetchUsers = async (): Promise<void> => {
-    try {
-      const response = await fetch("http://localhost:3001/api/users");
-      if (!response.ok) {
-        throw new Error("Failed to fetch users");
-      }
-      const data = await response.json();
-      setUsers(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createUser = async (): Promise<void> => {
-    try {
-      const response = await fetch("http://localhost:3001/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: `user${Date.now()}@example.com`,
-          name: `User ${Date.now()}`,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create user");
-      }
-
-      await fetchUsers(); // Refresh the list
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+        <div className="text-lg">Loading users with tRPC...</div>
       </div>
     );
   }
@@ -75,18 +26,17 @@ export function HomePage(): React.JSX.Element {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold tracking-tight mb-4">
-            Welcome to Your Template
+            Welcome to Your Turborepo Template
           </h1>
           <p className="text-xl text-muted-foreground mb-6">
-            A modern monorepo template with Express API, React frontend, and
-            TypeScript throughout.
+            A modern monorepo with tRPC, Express API, React frontend, PostgreSQL, and TypeScript throughout.
           </p>
           <div className="flex gap-4">
-            <Button onClick={createUser} size="lg">
-              Create Test User
+            <Button variant="outline" onClick={() => void refetch()}>
+              🔄 Refresh Users (tRPC Query)
             </Button>
-            <Button variant="outline" size="lg" asChild>
-              <a href="/orpc">Try oRPC Demo →</a>
+            <Button variant="secondary">
+              Create Test User
             </Button>
           </div>
         </div>
@@ -94,7 +44,9 @@ export function HomePage(): React.JSX.Element {
         {error && (
           <Card className="mb-6 border-destructive">
             <CardContent className="pt-6">
-              <p className="text-destructive">Error: {error}</p>
+              <p className="text-destructive">
+                Error: {error.message || 'Unknown error'}
+              </p>
             </CardContent>
           </Card>
         )}
@@ -103,13 +55,13 @@ export function HomePage(): React.JSX.Element {
           <CardHeader>
             <CardTitle>Users ({users.length})</CardTitle>
             <CardDescription>
-              Users from your Express API with Drizzle ORM
+              Users from your PostgreSQL database via tRPC
             </CardDescription>
           </CardHeader>
           <CardContent>
             {users.length === 0 ? (
               <p className="text-muted-foreground">
-                No users yet. Create your first user!
+                No users found. Check the backend logs and database!
               </p>
             ) : (
               <div className="space-y-4">
@@ -123,6 +75,9 @@ export function HomePage(): React.JSX.Element {
                       <p className="text-sm text-muted-foreground">
                         {user.email}
                       </p>
+                      <p className="text-xs text-muted-foreground">
+                        Created: {new Date(user.createdAt).toLocaleString()}
+                      </p>
                     </div>
                     <div className="text-sm text-muted-foreground">
                       ID: {user.id}
@@ -133,6 +88,23 @@ export function HomePage(): React.JSX.Element {
             )}
           </CardContent>
         </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>🔍 Tech Stack</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm">📦 <strong>Monorepo:</strong> Turborepo with pnpm workspaces</p>
+              <p className="text-sm">🖥️ <strong>Backend:</strong> Express + tRPC + Drizzle ORM</p>
+              <p className="text-sm">🌐 <strong>Frontend:</strong> React + Vite + TailwindCSS</p>
+              <p className="text-sm">🗄️ <strong>Database:</strong> PostgreSQL with type-safe queries</p>
+              <p className="text-sm">🔒 <strong>Type Safety:</strong> End-to-end TypeScript</p>
+            </CardContent>
+          </Card>
+
+          <StreamingTime />
+        </div>
       </div>
     </div>
   );
