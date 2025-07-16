@@ -1,135 +1,224 @@
-# Turborepo starter
+# Modern TypeScript Monorepo Template
 
-This Turborepo starter is maintained by the Turborepo core team.
+A production-ready monorepo template with best practices, featuring Express.js backend with Drizzle ORM and React frontend with Tailwind CSS 4 and shadcn/ui.
 
-## Using this example
+## ✨ Features
 
-Run the following command:
+### 🏗️ Monorepo Architecture
+- **Turborepo** for build system optimization with caching
+- **pnpm workspaces** for efficient dependency management
+- Shared ESLint and TypeScript configurations
 
-```sh
-npx create-turbo@latest
+### 🎯 Backend (Express + Drizzle)
+- **Express.js** with TypeScript
+- **Drizzle ORM** with SQLite (better-sqlite3)
+- **Zod** for validation
+- **Vitest** for testing with database setup
+- Security middleware (helmet, cors, compression)
+- Structured error handling
+
+### 🎨 Frontend (React + Tailwind 4)
+- **React 18** with TypeScript
+- **Vite** for development and building
+- **Tailwind CSS 4** (alpha) with new features
+- **shadcn/ui** components
+- **React Router** for navigation
+- **Vitest** for testing with React Testing Library
+
+### 🔧 Development Tools
+- **ESLint** with TypeScript support (flat config)
+- **Prettier** for code formatting
+- **TypeScript** strict configuration
+- **Turborepo** for orchestrated builds
+- Modern development workflows
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- pnpm (installed automatically)
+
+### Setup
+```bash
+# Clone the template
+git clone <your-repo-url>
+cd uber-template
+
+# Install dependencies
+pnpm install
+
+# Generate database schema
+pnpm db:generate
+
+# Migrate database
+pnpm db:migrate
+
+# Start development servers
+pnpm dev
 ```
 
-## What's inside?
+This will start:
+- Backend API on http://localhost:3001
+- Frontend on http://localhost:3000
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## 📦 Package Structure
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+├── apps/
+│   ├── api/              # Express.js backend
+│   │   ├── src/
+│   │   │   ├── db/       # Database schema and connection
+│   │   │   ├── routes/   # API routes
+│   │   │   └── middleware/ # Express middleware
+│   │   ├── tests/        # Backend tests
+│   │   └── drizzle/      # Database migrations
+│   └── web/              # React frontend
+│       ├── src/
+│       │   ├── components/ # React components
+│       │   ├── pages/    # Page components
+│       │   └── lib/      # Utility functions
+│       └── tests/        # Frontend tests
+└── packages/
+    ├── eslint-config/    # Shared ESLint configurations
+    └── typescript-config/ # Shared TypeScript configurations
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## 🛠️ Available Scripts
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+### Root Commands
+```bash
+# Development
+pnpm dev              # Start all apps in development mode
+pnpm build            # Build all packages
+pnpm test             # Run all tests
+pnpm lint             # Lint all packages
+pnpm lint:fix         # Fix linting issues
+pnpm check-types      # Type check all packages
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+# Database (API only)
+pnpm db:generate      # Generate migrations from schema
+pnpm db:migrate       # Run database migrations
+pnpm db:studio        # Open Drizzle Studio
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+# Utilities
+pnpm clean            # Clean all build artifacts
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### Package-specific Commands
+```bash
+# Backend API
+cd apps/api
+pnpm dev              # Start API server
+pnpm build            # Build API
+pnpm test             # Run API tests
+pnpm test:coverage    # Run tests with coverage
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+# Frontend
+cd apps/web
+pnpm dev              # Start development server
+pnpm build            # Build for production
+pnpm preview          # Preview production build
+pnpm test             # Run frontend tests
+pnpm test:ui          # Run tests with UI
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## 🗄️ Database
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+The template uses **Drizzle ORM** with **SQLite** for simplicity. The schema is defined in `apps/api/src/db/schema.ts`.
 
+### Example Usage
+```typescript
+// Create a user
+const newUser = await db.insert(users).values({
+  email: "user@example.com",
+  name: "John Doe"
+}).returning();
+
+// Query users
+const allUsers = await db.select().from(users);
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+### Migrations
+```bash
+# After changing schema
+pnpm db:generate      # Generate migration
+pnpm db:migrate       # Apply migration
 ```
 
-## Useful Links
+## 🎨 Styling
 
-Learn more about the power of Turborepo:
+The frontend uses **Tailwind CSS 4** (alpha) with the new features:
+- `@theme` directive for design tokens
+- OKLCH color space for better color handling
+- Enhanced configuration
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+### shadcn/ui Components
+Pre-configured components are available in `apps/web/src/components/ui/`:
+- Button
+- Card
+- Form components (coming soon)
+
+## 🧪 Testing
+
+### Backend Tests
+- **Vitest** with database setup
+- Automatic database migrations for tests
+- API endpoint testing with supertest
+
+### Frontend Tests
+- **Vitest** with React Testing Library
+- Component testing
+- Mocked API calls
+
+## 📝 ESLint Configuration
+
+The template includes three ESLint configurations:
+
+1. **Base** (`@repo/eslint-config/base`) - Core TypeScript rules
+2. **Node** (`@repo/eslint-config/node`) - Backend-specific rules
+3. **React** (`@repo/eslint-config/react-internal`) - Frontend-specific rules
+
+All configurations use:
+- TypeScript ESLint with strict rules
+- Modern flat config format
+- Turborepo integration
+- Prettier compatibility
+
+## 🔧 Customization
+
+### Adding New Packages
+1. Create package in `apps/` or `packages/`
+2. Add appropriate `package.json`
+3. Update workspace configuration if needed
+
+### Database Changes
+1. Modify `apps/api/src/db/schema.ts`
+2. Run `pnpm db:generate`
+3. Run `pnpm db:migrate`
+
+### Frontend Components
+1. Add components to `apps/web/src/components/`
+2. Use shadcn/ui patterns
+3. Follow TypeScript strict mode
+
+## 🚀 Deployment
+
+### Backend
+The API builds to a single JavaScript file and can be deployed to:
+- Node.js hosting (Railway, Render, etc.)
+- Serverless functions (Vercel, Netlify)
+- Docker containers
+
+### Frontend
+The React app builds to static files and can be deployed to:
+- Vercel
+- Netlify
+- Static hosting services
+
+## 📄 License
+
+MIT License - feel free to use this template for your projects!
+
+## 🤝 Contributing
+
+This is a template repository. Feel free to fork and customize for your needs!

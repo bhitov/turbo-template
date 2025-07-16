@@ -3,18 +3,19 @@ import eslintConfigPrettier from "eslint-config-prettier";
 import tseslint from "typescript-eslint";
 import pluginReactHooks from "eslint-plugin-react-hooks";
 import pluginReact from "eslint-plugin-react";
+import turboPlugin from "eslint-plugin-turbo";
 import globals from "globals";
-import { config as baseConfig } from "./base.js";
+import { configWithTypeChecking } from "./base.js";
 
 /**
- * A custom ESLint configuration for libraries that use React.
+ * A custom ESLint configuration for libraries that use React with TypeScript type checking.
  *
- * @type {import("eslint").Linter.Config[]} */
-export const config = [
-  ...baseConfig,
-  js.configs.recommended,
-  eslintConfigPrettier,
-  ...tseslint.configs.recommended,
+ * @param {string} tsconfigPath - Path to tsconfig.json
+ * @param {string} tsconfigRootDir - Root directory for tsconfig
+ * @type {function(string, string): import("eslint").Linter.Config[]}
+ */
+export default (tsconfigPath = "./tsconfig.json", tsconfigRootDir = import.meta.dirname) => [
+  ...configWithTypeChecking(tsconfigPath, tsconfigRootDir),
   pluginReact.configs.flat.recommended,
   {
     languageOptions: {
@@ -35,5 +36,16 @@ export const config = [
       // React scope no longer necessary with new JSX transform.
       "react/react-in-jsx-scope": "off",
     },
+  },
+  {
+    plugins: {
+      turbo: turboPlugin,
+    },
+    rules: {
+      "turbo/no-undeclared-env-vars": "warn",
+    },
+  },
+  {
+    ignores: ["dist/**", "node_modules/**", ".next/**", "build/**", "coverage/**", "vite.config.ts", "vitest.config.ts"],
   },
 ];
