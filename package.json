@@ -1,5 +1,5 @@
 {
-  "name": "my-turborepo",
+  "name": "uber-template",
   "private": true,
   "scripts": {
     "build": "turbo run build",
